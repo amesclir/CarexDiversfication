@@ -1,0 +1,177 @@
+---
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+
+Now we are going to work with BAMM
+
+```{r}
+library(BAMMtools)
+library(coda)
+
+## load data
+mytree <- read.tree("Carex2n.tree")
+mcmcout <- read.csv("mcmc_out.txt")
+
+## create edata
+edata <- getEventData(mytree, eventdata = "event_data.txt", burnin=0.15)
+
+
+#### Check convergence
+plot(mcmcout$logLik ~ mcmcout$generation)
+
+burnstart <- floor(0.15 * nrow(mcmcout))
+postburn <- mcmcout[burnstart:nrow(mcmcout), ]
+
+effectiveSize(postburn$N_shifts)
+effectiveSize(postburn$logLik)
+
+
+
+### Shift probabilities
+shift_probs <- summary(edata)
+shift_probs
+write.csv(shift_probs, file = "shift_probs.txt")
+
+### Bayes factors
+bfmat <- computeBayesFactors(postburn, expectedNumberOfShifts=10, burnin=0.15)
+bfmat
+write.csv(bfmat, file = "bfmat.txt")
+
+#### PLOT CREDIBLE SHIFTS
+css <- credibleShiftSet(edata, expectedNumberOfShifts=10, threshold=5, set.limit = 0.95)
+css
+
+plot.credibleshiftset(css,spex = "netdiv")
+
+
+### PLOT BEST SHIFT
+dev.off()
+best <- getBestShiftConfiguration(edata, expectedNumberOfShifts=10)
+best
+
+pdffn = paste0("bamm", ".best.pdf")
+pdf(file=pdffn, width=6, height=60)
+plot.bammdata(best, lwd = 2,spex = "netdiv",label=T,cex=0.5)
+axisPhylo()
+addBAMMshifts(best, cex=3)
+dev.off()
+
+pdffn = paste0("bamm2", ".best.pdf")
+pdf(file=pdffn, width=6, height=18)
+plot.bammdata(best, lwd = 2,spex = "netdiv",label=F,cex=0.5)
+axisPhylo()
+addBAMMshifts(best, cex=3)
+dev.off()
+
+pdffn = paste0("bamm3", ".best.pdf")
+pdf(file=pdffn, width=60, height=60)
+plot.bammdata(best, method="polar", lwd = 2,spex = "netdiv",label=T,cex=0.5)
+axisPhylo()
+addBAMMshifts(best, cex=3)
+dev.off()
+
+best$eventData
+write.csv(best$eventData, file ="best.txt")
+
+
+
+#phenotype evolution
+
+## create edata
+phenoedata <- getEventData(mytree, eventdata = "./phenotype/event_data.txt", burnin=0.15, type = "trait")
+
+
+#### Check convergence
+plot(mcmcout$logLik ~ mcmcout$generation)
+
+burnstart <- floor(0.15 * nrow(mcmcout))
+phenopostburn <- mcmcout[burnstart:nrow(mcmcout), ]
+
+effectiveSize(phenopostburn$N_shifts)
+effectiveSize(phenopostburn$logLik)
+
+
+
+### Shift probabilities
+phenoshift_probs <- summary(phenoedata)
+phenoshift_probs
+write.csv(phenoshift_probs, file = "./phenotype/phenoshift_probs.txt")
+
+### Bayes factors
+phenobfmat <- computeBayesFactors(phenopostburn, expectedNumberOfShifts=10, burnin=0.15)
+phenobfmat
+write.csv(phenobfmat, file = "./phenotype/phenobfmat.txt")
+
+#### PLOT CREDIBLE SHIFTS
+phenocss <- credibleShiftSet(phenoedata, expectedNumberOfShifts=10, threshold=5, set.limit = 0.95)
+phenocss
+
+plot.credibleshiftset(phenocss)
+
+
+### PLOT BEST SHIFT
+dev.off()
+phenobest <- getBestShiftConfiguration(phenoedata, expectedNumberOfShifts=10)
+phenobest
+
+pdffn = paste0("pheno", ".best.pdf")
+pdf(file=pdffn, width=6, height=60)
+plot.bammdata(phenobest, lwd = 2,label=T,cex=0.5)
+axisPhylo()
+addBAMMshifts(phenobest, cex=3)
+dev.off()
+
+pdffn = paste0("pheno2", ".best.pdf")
+pdf(file=pdffn, width=6, height=18)
+plot.bammdata(phenobest, lwd = 2,label=F,cex=0.5)
+axisPhylo()
+addBAMMshifts(phenobest, cex=3)
+dev.off()
+
+pdffn = paste0("pheno3", ".best.pdf")
+pdf(file=pdffn, width=60, height=60)
+plot.bammdata(phenobest, method= "polar", lwd = 2,label=T,cex=0.5)
+axisPhylo()
+addBAMMshifts(phenobest, cex=3)
+dev.off()
+
+phenobest$eventData
+write.csv(phenobest$eventData, file ="./phenotype/phenobest.txt")
+
+
+
+
+
+
+MarginalBranchRateMatrix <- getMarginalBranchRateMatrix(best)
+phenoMarginalBranchRateMatrix <- getMarginalBranchRateMatrix (phenobest)
+div_branch_matrix <- MarginalBranchRateMatrix$lambda_branch_matrix - MarginalBranchRateMatrix$mu_branch_matrix
+branch_matrix <- cbind (div_branch_matrix, MarginalBranchRateMatrix$lambda_branch_matrix, MarginalBranchRateMatrix$mu_branch_matrix, phenoMarginalBranchRateMatrix$beta_branch_matrix)
+branch_matrix
+summary(lm(branch_matrix[,4] ~ branch_matrix[,1]))
+summary(lm(branch_matrix[,4] ~ branch_matrix[,2]))
+summary(lm(branch_matrix[,4] ~ branch_matrix[,3]))
+write.csv(branch_matrix, file = "branch_matrix.csv")
+
+branch_matrix2 <- read.csv(file="./branch_matrix2.csv")
+branch_matrix2
+
+summary(lm(branch_matrix2[,4] ~ branch_matrix2[,5]))
+summary(lm(branch_matrix2[,5] ~ branch_matrix2[,1]))
+summary(lm(branch_matrix2[,5] ~ branch_matrix2[,2]))
+summary(lm(branch_matrix2[,5] ~ branch_matrix2[,3]))
+
+
+library(lmPerm)
+names(branch_matrix2)
+
+summary(lmp(rateBAMM~Diversification,data=branch_matrix2, perm="Exact"))
+summary(lmp(rateBAMM~Speciation,data=branch_matrix2, perm="Exact"))
+summary(lmp(rateBAMM~Extincion,data=branch_matrix2, perm="Exact"))
+
+```
+
+
