@@ -12,11 +12,11 @@ library(BAMMtools)
 library(coda)
 
 ## load data
-mytree <- read.tree("Carex2n.tree")
-mcmcout <- read.csv("mcmc_out.txt")
+mytree <- read.tree("./diversification/Carex2n.tree")
+mcmcout <- read.csv("./diversification/mcmc_out.txt")
 
 ## create edata
-edata <- getEventData(mytree, eventdata = "event_data.txt", burnin=0.15)
+edata <- getEventData(mytree, eventdata = "./diversification/event_data.txt", burnin=0.15)
 
 
 #### Check convergence
@@ -33,12 +33,12 @@ effectiveSize(postburn$logLik)
 ### Shift probabilities
 shift_probs <- summary(edata)
 shift_probs
-write.csv(shift_probs, file = "shift_probs.txt")
+write.csv(shift_probs, file = "./diversification/shift_probs.txt")
 
 ### Bayes factors
 bfmat <- computeBayesFactors(postburn, expectedNumberOfShifts=10, burnin=0.15)
 bfmat
-write.csv(bfmat, file = "bfmat.txt")
+write.csv(bfmat, file = "./diversification/bfmat.txt")
 
 #### PLOT CREDIBLE SHIFTS
 css <- credibleShiftSet(edata, expectedNumberOfShifts=10, threshold=5, set.limit = 0.95)
@@ -52,21 +52,21 @@ dev.off()
 best <- getBestShiftConfiguration(edata, expectedNumberOfShifts=10)
 best
 
-pdffn = paste0("bamm", ".best.pdf")
+pdffn = paste0("./diversification/bamm", ".best.pdf")
 pdf(file=pdffn, width=6, height=60)
 plot.bammdata(best, lwd = 2,spex = "netdiv",label=T,cex=0.5)
 axisPhylo()
 addBAMMshifts(best, cex=3)
 dev.off()
 
-pdffn = paste0("bamm2", ".best.pdf")
+pdffn = paste0("./diversification/bamm2", ".best.pdf")
 pdf(file=pdffn, width=6, height=18)
 plot.bammdata(best, lwd = 2,spex = "netdiv",label=F,cex=0.5)
 axisPhylo()
 addBAMMshifts(best, cex=3)
 dev.off()
 
-pdffn = paste0("bamm3", ".best.pdf")
+pdffn = paste0("./diversification/bamm3", ".best.pdf")
 pdf(file=pdffn, width=60, height=60)
 plot.bammdata(best, method="polar", lwd = 2,spex = "netdiv",label=T,cex=0.5)
 axisPhylo()
@@ -74,15 +74,14 @@ addBAMMshifts(best, cex=3)
 dev.off()
 
 best$eventData
-write.csv(best$eventData, file ="best.txt")
+write.csv(best$eventData, file ="./diversification/best.txt")
 
 
 
 #phenotype evolution
 
 ## create edata
-phenoedata <- getEventData(mytree, eventdata = "./phenotype/event_data.txt", burnin=0.15, type = "trait")
-
+phenoedata <- getEventData(mytree, eventdata = "./phenotype2n/event_data.txt", burnin=0.15, type = "trait")
 
 #### Check convergence
 plot(mcmcout$logLik ~ mcmcout$generation)
@@ -98,12 +97,12 @@ effectiveSize(phenopostburn$logLik)
 ### Shift probabilities
 phenoshift_probs <- summary(phenoedata)
 phenoshift_probs
-write.csv(phenoshift_probs, file = "./phenotype/phenoshift_probs.txt")
+write.csv(phenoshift_probs, file = "./phenotype2n/phenoshift_probs.txt")
 
 ### Bayes factors
 phenobfmat <- computeBayesFactors(phenopostburn, expectedNumberOfShifts=10, burnin=0.15)
 phenobfmat
-write.csv(phenobfmat, file = "./phenotype/phenobfmat.txt")
+write.csv(phenobfmat, file = "./phenotype2n/phenobfmat.txt")
 
 #### PLOT CREDIBLE SHIFTS
 phenocss <- credibleShiftSet(phenoedata, expectedNumberOfShifts=10, threshold=5, set.limit = 0.95)
@@ -117,21 +116,21 @@ dev.off()
 phenobest <- getBestShiftConfiguration(phenoedata, expectedNumberOfShifts=10)
 phenobest
 
-pdffn = paste0("pheno", ".best.pdf")
+pdffn = paste0("./phenotype2n/pheno", ".best.pdf")
 pdf(file=pdffn, width=6, height=60)
 plot.bammdata(phenobest, lwd = 2,label=T,cex=0.5)
 axisPhylo()
 addBAMMshifts(phenobest, cex=3)
 dev.off()
 
-pdffn = paste0("pheno2", ".best.pdf")
+pdffn = paste0("./phenotype2n/pheno2", ".best.pdf")
 pdf(file=pdffn, width=6, height=18)
 plot.bammdata(phenobest, lwd = 2,label=F,cex=0.5)
 axisPhylo()
 addBAMMshifts(phenobest, cex=3)
 dev.off()
 
-pdffn = paste0("pheno3", ".best.pdf")
+pdffn = paste0("./phenotype2n/pheno3", ".best.pdf")
 pdf(file=pdffn, width=60, height=60)
 plot.bammdata(phenobest, method= "polar", lwd = 2,label=T,cex=0.5)
 axisPhylo()
@@ -139,7 +138,7 @@ addBAMMshifts(phenobest, cex=3)
 dev.off()
 
 phenobest$eventData
-write.csv(phenobest$eventData, file ="./phenotype/phenobest.txt")
+write.csv(phenobest$eventData, file ="./phenotype2n/phenobest.txt")
 
 
 
@@ -171,6 +170,10 @@ names(branch_matrix2)
 summary(lmp(rateBAMM~Diversification,data=branch_matrix2, perm="Exact"))
 summary(lmp(rateBAMM~Speciation,data=branch_matrix2, perm="Exact"))
 summary(lmp(rateBAMM~Extincion,data=branch_matrix2, perm="Exact"))
+
+PPAdiv2n <- cbind(best$tip.label,best$tipLambda[[1]],best$tipMu[[1]],best$tipLambda[[1]]-best$tipMu[[1]],phenobest$tipLambda[[1]])
+PPAdiv2n
+write.csv(PPAdiv2n, file = "PPAdiv2n.csv")
 
 ```
 
