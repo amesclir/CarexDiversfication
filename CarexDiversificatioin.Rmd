@@ -171,9 +171,13 @@ summary(lmp(rateBAMM~Diversification,data=branch_matrix2, perm="Exact"))
 summary(lmp(rateBAMM~Speciation,data=branch_matrix2, perm="Exact"))
 summary(lmp(rateBAMM~Extincion,data=branch_matrix2, perm="Exact"))
 
-PPAdiv2n <- cbind(best$tip.label,best$tipLambda[[1]],best$tipMu[[1]],best$tipLambda[[1]]-best$tipMu[[1]],phenobest$tipLambda[[1]])
+div <- best$tipLambda - best$tipMu
+PPAdiv2n <- cbind(best$tip.label, best$tipLambda[[1]], best$tipMu[[1]], best$tipLambda[[1]] - best$tipMu[[1]], phenobest$tipLambda[[1]])
 PPAdiv2n
 write.csv(PPAdiv2n, file = "PPAdiv2n.csv")
+
+
+
 
 ```
 
