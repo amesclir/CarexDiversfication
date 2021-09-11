@@ -173,10 +173,10 @@ summary(lmp(rateBAMM~Extincion,data=branch_matrix2, perm="Exact"))
 
 PPAdiv <- cbind(best$tip.label, best$tipLambda[[1]], best$tipMu[[1]], best$tipLambda[[1]] - best$tipMu[[1]])
 PPAdiv
-write.csv(PPAdiv2n, file = "PPAdiv.csv")
+write.csv(PPAdiv, file = "PPAdiv.csv")
 PPA2n <- cbind(phenobest$tip.label, phenobest$tipLambda[[1]])
 PPA2n
-write.csv(PPAdiv2n, file = "PPA2n.csv")
+write.csv(PPA2n, file = "PPA2n.csv")
 
 
 
