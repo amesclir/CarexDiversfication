@@ -12,7 +12,7 @@ library(BAMMtools)
 library(coda)
 
 ## load data
-mytree <- read.tree("./diversification/Carex2n.tree")
+mytree <- read.tree("./diversification/Carex10Fossil.divTree.tre")
 mcmcout <- read.csv("./diversification/mcmc_out.txt")
 
 ## create edata
@@ -171,10 +171,12 @@ summary(lmp(rateBAMM~Diversification,data=branch_matrix2, perm="Exact"))
 summary(lmp(rateBAMM~Speciation,data=branch_matrix2, perm="Exact"))
 summary(lmp(rateBAMM~Extincion,data=branch_matrix2, perm="Exact"))
 
-div <- best$tipLambda - best$tipMu
-PPAdiv2n <- cbind(best$tip.label, best$tipLambda[[1]], best$tipMu[[1]], best$tipLambda[[1]] - best$tipMu[[1]], phenobest$tipLambda[[1]])
-PPAdiv2n
-write.csv(PPAdiv2n, file = "PPAdiv2n.csv")
+PPAdiv <- cbind(best$tip.label, best$tipLambda[[1]], best$tipMu[[1]], best$tipLambda[[1]] - best$tipMu[[1]])
+PPAdiv
+write.csv(PPAdiv2n, file = "PPAdiv.csv")
+PPA2n <- cbind(phenobest$tip.label, phenobest$tipLambda[[1]])
+PPA2n
+write.csv(PPAdiv2n, file = "PPA2n.csv")
 
 
 
